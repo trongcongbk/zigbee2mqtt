@@ -98,7 +98,7 @@ export default class Zigbee {
         });
         this.herdsman.on('message', (data: ZHEvents.MessagePayload) => {
             const device = this.resolveDevice(data.device.ieeeAddr);
-            logger.debug(`Received Zigbee message from '${device.name}', type '${data.type}', ` +
+            logger.debug(`Received Zigbee message with transactionSequenceNumber: '${data.meta.zclTransactionSequenceNumber}' from '${device.name}', type '${data.type}', ` +
                 `cluster '${data.cluster}', data '${stringify(data.data)}' from endpoint ${data.endpoint.ID}` +
                 (data.hasOwnProperty('groupID') ? ` with groupID ${data.groupID}` : ``) +
                 (device.zh.type === 'Coordinator' ? `, ignoring since it is from coordinator` : ``));
@@ -244,7 +244,7 @@ export default class Zigbee {
     resolveEntity(key: string | number | zh.Device): Device | Group {
         if (typeof key === 'object') {
             return this.resolveDevice(key.ieeeAddr);
-        } else if (typeof key === 'string' && key.toLowerCase() === 'coordinator') {
+        } else if (typeof key === 'string' && (key.toLowerCase() === 'coordinator' || key === this.herdsman.getDevicesByType('Coordinator')[0].ieeeAddr)) { //CongNT16: Fix cannot add Coordinator to Group
             return this.resolveDevice(this.herdsman.getDevicesByType('Coordinator')[0].ieeeAddr);
         } else {
             const settingsDevice = settings.getDevice(key.toString());
