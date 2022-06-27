@@ -31,6 +31,7 @@ export default class Bridge extends Extension {
             'device/options': this.deviceOptions,
             'device/configure_reporting': this.deviceConfigureReporting,
             'device/remove': this.deviceRemove,
+            'device/reset': this.deviceReset,
             'device/rename': this.deviceRename,
             'group/add': this.groupAdd,
             'group/options': this.groupOptions,
@@ -195,6 +196,10 @@ export default class Bridge extends Extension {
 
     @bind async deviceRemove(message: string | KeyValue): Promise<MQTTResponse> {
         return this.removeEntity('device', message);
+    }
+
+    @bind async deviceReset(message: string | KeyValue): Promise<MQTTResponse> {
+        return this.resetEntity('device', message);
     }
 
     @bind async groupRemove(message: string | KeyValue): Promise<MQTTResponse> {
@@ -547,6 +552,43 @@ export default class Bridge extends Extension {
         } catch (error) {
             throw new Error(
                 `Failed to remove ${entityType} '${friendlyName}'${blockForceLog} (${error})`,
+            );
+        }
+    }
+
+    async resetEntity(entityType: 'group' | 'device', message: string | KeyValue): Promise<MQTTResponse> {
+        const ID = typeof message === 'object' ? message.id : message.trim();
+        const entity = this.getEntity(entityType, ID);
+        const friendlyName = entity.name;
+        const entityID = entity.ID;
+
+        try {
+            logger.info(`Reseting ${entityType} '${entity.name}`);
+            const ieeeAddr = entity.isDevice() && entity.ieeeAddr;
+            const name = entity.name;
+
+            if (entity instanceof Device) {
+                await entity.zh.resetThisDevice();
+            }
+
+            // Fire event
+            if (entity instanceof Device) {
+                this.eventBus.emitDeviceReset({ieeeAddr, name});
+            }
+
+            logger.info(`Successfully reset ${entityType} '${friendlyName}`);
+
+            if (entity instanceof Device) {
+                this.publishGroups();
+                this.publishDevices();
+                return utils.getResponse(message, {id: ID}, null);
+            } else {
+                this.publishGroups();
+                return utils.getResponse(message, {id: ID}, null);
+            }
+        } catch (error) {
+            throw new Error(
+                `Failed to reset ${entityType} '${friendlyName}'(${error})`,
             );
         }
     }

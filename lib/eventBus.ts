@@ -48,6 +48,13 @@ export default class EventBus {
         this.on('deviceRemoved', callback, key);
     }
 
+    public emitDeviceReset(data: eventdata.DeviceRemoved): void {
+        this.emitter.emit('deviceReset', data);
+    }
+    public onDeviceReset(key: ListenerKey, callback: (data: eventdata.DeviceRemoved) => void): void {
+        this.on('deviceReset', callback, key);
+    }
+
     public emitLastSeenChanged(data: eventdata.LastSeenChanged): void {
         this.emitter.emit('lastSeenChanged', data);
     }

@@ -111,6 +111,7 @@ export default class Availability extends Extension {
         });
 
         this.eventBus.onDeviceRemoved(this, (data) => clearTimeout(this.timers[data.ieeeAddr]));
+        this.eventBus.onDeviceReset(this, (data) => clearTimeout(this.timers[data.ieeeAddr]));
         this.eventBus.onDeviceLeave(this, (data) => clearTimeout(this.timers[data.ieeeAddr]));
         this.eventBus.onDeviceAnnounce(this, (data) => this.retrieveState(data.device));
         this.eventBus.onLastSeenChanged(this, this.onLastSeenChanged);
