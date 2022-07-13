@@ -52,15 +52,17 @@ export default class Bridge extends Extension {
         };
 
         const mqtt = this.mqtt;
-        class EventTransport extends Transport {
+        if (settings.get().advanced.log_mqtt) {
+            class EventTransport extends Transport {
             log(info: {message: string, level: string}, callback: () => void): void {
                 const payload = stringify({message: info.message, level: info.level});
                 mqtt.publish(`bridge/logging`, payload, {}, settings.get().mqtt.base_topic, true);
                 callback();
             }
+            }
+            logger.addTransport(new EventTransport());
         }
-
-        logger.addTransport(new EventTransport());
+        
 
         this.zigbee2mqttVersion = await utils.getZigbee2MQTTVersion();
         this.coordinatorVersion = await this.zigbee.getCoordinatorVersion();

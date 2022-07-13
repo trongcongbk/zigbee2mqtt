@@ -73,6 +73,7 @@ const defaults: RecursivePartial<Settings> = {
     advanced: {
         legacy_api: true,
         legacy_availability_payload: true,
+        log_mqtt: true,
         log_rotation: true,
         log_symlink_current: false,
         log_output: ['console', 'file'],

@@ -1,4 +1,8 @@
-homeassistant: false
+homeassistant:
+  discovery_topic: homeassistant
+  legacy_entity_attributes: true
+  legacy_triggers: true
+  status_topic: homeassistant/status
 permit_join: false
 mqtt:
   base_topic: z2m/labiot_kay_win
@@ -9,7 +13,7 @@ mqtt:
   reject_unauthorized: true
   version: 4
 serial:
-  port: \\.\COM7
+  port: \\.\COM4
 advanced:
   log_level: debug
   log_rotation: false
@@ -56,6 +60,7 @@ advanced:
   pan_id: 6500
   legacy_availability_payload: false
   last_seen: ISO_8601
+  log_mqtt: false
 device_options:
   legacy: false
 frontend:
@@ -80,4 +85,8 @@ devices:
   '0x00124b0023b3fbc6':
     friendly_name: '0x00124b0023b3fbc6'
   '0xa4c13840685531d2':
-    friendly_name: '0xa4c13840685531d2'
+    friendly_name: test2
+  '0x804b50fffe5816aa':
+    friendly_name: '0x804b50fffe5816aa'
+  '0xe0798dfffe717780':
+    friendly_name: '0xe0798dfffe717780'
