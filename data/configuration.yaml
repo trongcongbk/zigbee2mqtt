@@ -13,7 +13,7 @@ mqtt:
   reject_unauthorized: true
   version: 4
 serial:
-  port: \\.\COM4
+  port: \\.\COM5
 advanced:
   log_level: debug
   log_rotation: false

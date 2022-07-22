@@ -48,6 +48,8 @@ class Controller {
     private exitCallback: (code: number) => void;
     private extensions: Extension[];
     private extensionArgs: ExtensionArgs;
+    private onlineInterval: NodeJS.Timeout; //CongNT16 add
+    private onlineTimeout: NodeJS.Timeout; //CongNT16 add
 
     constructor(restartCallback: () => void, exitCallback: (code: number) => void) {
         this.eventBus = new EventBus( /* istanbul ignore next */ (error) => {
@@ -163,7 +165,37 @@ class Controller {
 
         this.eventBus.onLastSeenChanged(this,
             (data) => utils.publishLastSeen(data, settings.get(), false, this.publishEntityState));
+        
+        clearTimeout(this.onlineInterval);
+        this.onlineInterval = setInterval(() => {
+            clearTimeout(this.onlineTimeout);
+            this.onlineTimeout = setTimeout(() => {
+                logger.error('Cannot send status to MQTT server!');
+                logger.info('Disconnect to MQTT server!');
+                this.mqttReconnect();
+            },utils.seconds(20));
+            this.stateReport();
+        },utils.seconds(60));
     }
+    async stateReport(): Promise<void> {
+        await this.mqtt.publish('bridge/state', utils.availabilityPayload('online', settings.get()), {retain: true, qos: 0});
+        clearTimeout(this.onlineTimeout);
+    }
+    async mqttReconnect(): Promise<void> {
+        logger.info('Reconnecting to MQTT server!');
+        try {
+            await this.mqtt.disconnect();
+            logger.info('Diconnected to mqtt server');
+            await this.mqtt.disconnect();
+            setTimeout(() => {
+                this.mqtt.connect();
+            },utils.seconds(120));
+        } catch (error) {
+            logger.error('Failed to stop Zigbee2MQTT');
+            await this.exit(1);
+        }
+    }
+
 
     @bind async enableDisableExtension(enable: boolean, name: string): Promise<void> {
         if (!enable) {
@@ -190,6 +222,8 @@ class Controller {
         // Call extensions
         await this.callExtensions('stop', this.extensions);
         this.eventBus.removeListeners(this);
+        clearTimeout(this.onlineTimeout);
+        clearTimeout(this.onlineInterval);
 
         // Wrap-up
         this.state.stop();
